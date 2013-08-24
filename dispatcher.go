@@ -10,10 +10,10 @@ import (
 )
 
 var (
-  ReplaceOptionalParams = regexp.MustCompile(`\/\(`)
-  ReplaceRequiredParams = regexp.MustCompile(`(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?`)
-  ReplaceSlashes        = regexp.MustCompile(`([\/.])`)
-  ReplaceWildcard       = regexp.MustCompile(`\*`)
+  ReplaceCaptureParams = regexp.MustCompile(`\/\(`)
+  ReplaceSlashes       = regexp.MustCompile(`([\/.])`)
+  ReplaceWildcard      = regexp.MustCompile(`\*`)
+  SplitRoutePath       = regexp.MustCompile(`(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?`)
 )
 
 type HttpMethod string
@@ -28,59 +28,59 @@ const (
 type Dispatcher map[HttpMethod]map[*Route]http.HandlerFunc
 
 type Router struct {
-  Dispatcher    Dispatcher
-  StrictRouting bool
+  dispatcher Dispatcher
+  strict     bool
 }
 
 type Route struct {
-  Path   string
-  Method string
-  Keys   []string
-  Regexp *regexp.Regexp
+  path    string
+  method  string
+  keys    []string
+  matcher *regexp.Regexp
 }
 
-type FragmentedPathParameter struct {
-  Definition string
-  Slash      string
-  Format     string
-  Name       string
-  Capture    string
-  Optional   string
+type fragmentedPathParameter struct {
+  definition string
+  slash      string
+  format     string
+  name       string
+  capture    string
+  optional   string
 }
 
 func NewRoute(path string, strict bool) (route *Route) {
   route = new(Route)
-  route.Path = path
+  route.path = path
 
-  compiled := ReplaceOptionalParams.ReplaceAllString(path, `(?:/`)
-  parameters := ReplaceRequiredParams.FindAllStringSubmatch(path, -1)
+  compiled := ReplaceCaptureParams.ReplaceAllString(path, `(?:/`)
+  parameters := SplitRoutePath.FindAllStringSubmatch(path, -1)
 
   if !strict {
     compiled = fmt.Sprintf("%v/?", compiled)
   }
 
-  for _, paramenter := range parameters {
-    fragmented := GenerateFragmentedPathParameter(paramenter)
+  for _, parameter := range parameters {
+    fragmented := generateFragmentedPathParameter(parameter)
 
     var formatted string
 
-    if 0 == len(fragmented.Optional) {
-      formatted = fmt.Sprintf("%v", fragmented.Slash)
+    if 0 == len(fragmented.optional) {
+      formatted = fmt.Sprintf("%v", fragmented.slash)
     }
 
     formatted = fmt.Sprintf("%v(?:", formatted)
 
-    if 0 < len(fragmented.Optional) {
-      formatted = fmt.Sprintf("%v%v", formatted, fragmented.Slash)
+    if 0 < len(fragmented.optional) {
+      formatted = fmt.Sprintf("%v%v", formatted, fragmented.slash)
     }
 
-    if 0 < len(fragmented.Format) {
-      formatted = fmt.Sprintf("%v%v", formatted, fragmented.Format)
+    if 0 < len(fragmented.format) {
+      formatted = fmt.Sprintf("%v%v", formatted, fragmented.format)
     }
 
-    if 0 < len(fragmented.Capture) {
-      formatted = fmt.Sprintf("%v%v", formatted, fragmented.Capture)
-    } else if 0 < len(fragmented.Format) {
+    if 0 < len(fragmented.capture) {
+      formatted = fmt.Sprintf("%v%v", formatted, fragmented.capture)
+    } else if 0 < len(fragmented.format) {
       formatted = fmt.Sprintf("%v([^/.]+?)", formatted)
     } else {
       formatted = fmt.Sprintf("%v([^/]+?)", formatted)
@@ -88,27 +88,27 @@ func NewRoute(path string, strict bool) (route *Route) {
 
     formatted = fmt.Sprintf("%v)", formatted)
 
-    if 0 < len(fragmented.Optional) {
-      formatted = fmt.Sprintf("%v%v", formatted, fragmented.Optional)
+    if 0 < len(fragmented.optional) {
+      formatted = fmt.Sprintf("%v%v", formatted, fragmented.optional)
     }
 
-    compiled = strings.Replace(compiled, fragmented.Definition, formatted, -1)
-    route.Keys = append(route.Keys, fragmented.Name)
+    compiled = strings.Replace(compiled, fragmented.definition, formatted, -1)
+    route.keys = append(route.keys, fragmented.name)
   }
 
   compiled = ReplaceSlashes.ReplaceAllString(compiled, "\\$1")
   compiled = ReplaceWildcard.ReplaceAllString(compiled, "(.*)")
-  route.Regexp = regexp.MustCompile(fmt.Sprintf(`^%v$`, compiled))
+  route.matcher = regexp.MustCompile(fmt.Sprintf(`^%v$`, compiled))
 
   return
 }
 
-func GenerateFragmentedPathParameter(segments []string) (fragment FragmentedPathParameter) {
-  fragment.Definition = segments[0]
-  fragment.Slash = segments[1]
-  fragment.Format = segments[2]
-  fragment.Name = segments[3]
-  fragment.Capture = segments[4]
-  fragment.Optional = segments[5]
+func generateFragmentedPathParameter(segments []string) (fragment fragmentedPathParameter) {
+  fragment.definition = segments[0]
+  fragment.slash = segments[1]
+  fragment.format = segments[2]
+  fragment.name = segments[3]
+  fragment.capture = segments[4]
+  fragment.optional = segments[5]
   return
 }

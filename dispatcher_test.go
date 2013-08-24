@@ -4,6 +4,9 @@ import (
   "testing"
 )
 
+type reader struct{}
+func (r reader) Read(p []byte) (n int, err error) { return }
+
 func TestNewRoute(t *testing.T) {
   route := NewRoute("/test/:required/:optional?", false)
   path := "/test/one/two"

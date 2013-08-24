@@ -10,26 +10,29 @@ import (
 )
 
 var (
-  ReplaceCaptureParams = regexp.MustCompile(`\/\(`)
-  ReplaceSlashes       = regexp.MustCompile(`([\/.])`)
-  ReplaceWildcard      = regexp.MustCompile(`\*`)
-  SplitRoutePath       = regexp.MustCompile(`(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?`)
+  replaceCaptureParams = regexp.MustCompile(`\/\(`)
+  replaceSlashes       = regexp.MustCompile(`([\/.])`)
+  replaceWildcards     = regexp.MustCompile(`\*`)
+  splitRoutePathParams = regexp.MustCompile(`(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?`)
 )
-
-type HttpMethod string
 
 const (
-  GET    HttpMethod = "GET"
-  PUT    HttpMethod = "PUT"
-  POST   HttpMethod = "POST"
-  DELETE HttpMethod = "DELETE"
+  GET    = "GET"
+  PUT    = "PUT"
+  POST   = "POST"
+  DELETE = "DELETE"
 )
 
-type Dispatcher map[HttpMethod]map[*Route]http.HandlerFunc
+var (
+  httpMethods = []string{GET, PUT, POST, DELETE}
+)
+
+type Dispatcher map[string]map[*Route]http.HandlerFunc
 
 type Router struct {
-  dispatcher Dispatcher
-  strict     bool
+  dispatcher      Dispatcher
+  notFoundHandler http.Handler
+  strict          bool
 }
 
 type Route struct {
@@ -48,12 +51,83 @@ type fragmentedPathParameter struct {
   optional   string
 }
 
+func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
+  route := NewRoute(path, r.strict)
+  r.dispatcher[GET][route] = handler
+  return r
+}
+
+func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
+  route := NewRoute(path, r.strict)
+  r.dispatcher[PUT][route] = handler
+  return r
+}
+
+func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
+  route := NewRoute(path, r.strict)
+  r.dispatcher[POST][route] = handler
+  return r
+}
+
+func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
+  route := NewRoute(path, r.strict)
+  r.dispatcher[DELETE][route] = handler
+  return r
+}
+
+func (r *Router) NotFound(handler http.HandlerFunc) *Router {
+  r.notFoundHandler = handler
+  return r
+}
+
+func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+  method := strings.ToUpper(req.Method)
+
+  if routes, ok := r.dispatcher[method]; ok {
+    for route, handler := range routes {
+      if route.matcher.MatchString(req.URL.Path) {
+        handler.ServeHTTP(res, req)
+        return
+      }
+    }
+  }
+
+  r.notFoundHandler.ServeHTTP(res, req)
+}
+
+func (r *Router) RestrictRouteMatching() *Router {
+  r.strict = true
+  return r
+}
+
+func (r *Router) UnrestrictRouteMatching() *Router {
+  r.strict = false
+  return r
+}
+
+func NewDispatcher() (dispatcher Dispatcher) {
+  dispatcher = make(Dispatcher)
+
+  for _, method := range httpMethods {
+    dispatcher[method] = make(map[*Route]http.HandlerFunc)
+  }
+
+  return
+}
+
+func NewRouter() (r *Router) {
+  r = new(Router)
+  r.dispatcher = NewDispatcher()
+  r.notFoundHandler = http.NotFoundHandler()
+  return
+}
+
 func NewRoute(path string, strict bool) (route *Route) {
   route = new(Route)
   route.path = path
 
-  compiled := ReplaceCaptureParams.ReplaceAllString(path, `(?:/`)
-  parameters := SplitRoutePath.FindAllStringSubmatch(path, -1)
+  compiled := replaceCaptureParams.ReplaceAllString(path, `(?:/`)
+  parameters := splitRoutePathParams.FindAllStringSubmatch(path, -1)
 
   if !strict {
     compiled = fmt.Sprintf("%v/?", compiled)
@@ -96,8 +170,8 @@ func NewRoute(path string, strict bool) (route *Route) {
     route.keys = append(route.keys, fragmented.name)
   }
 
-  compiled = ReplaceSlashes.ReplaceAllString(compiled, "\\$1")
-  compiled = ReplaceWildcard.ReplaceAllString(compiled, "(.*)")
+  compiled = replaceSlashes.ReplaceAllString(compiled, "\\$1")
+  compiled = replaceWildcards.ReplaceAllString(compiled, "(.*)")
   route.matcher = regexp.MustCompile(fmt.Sprintf(`^%v$`, compiled))
 
   return

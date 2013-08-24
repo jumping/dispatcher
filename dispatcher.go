@@ -65,14 +65,14 @@ func (r *Router) RestrictRouteMatching() *Router {
 
 // UnrestrictRouteMatching unsets a flag on the router
 // allowing routes ending with an unexpected trailing slash `/` to
-// match.  By default, unrestricted routing is enabled.
+// match. By default, unrestricted routing is enabled.
 func (r *Router) UnrestrictRouteMatching() *Router {
   r.strict = false
   return r
 }
 
 // Get registers a route to match the given path argument for
-// HTTP GET requests.  When a route is encounted that matches
+// HTTP GET requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
@@ -82,7 +82,7 @@ func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
 }
 
 // Put registers a route to match the given path argument for
-// HTTP PUT requests.  When a route is encounted that matches
+// HTTP PUT requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
@@ -92,7 +92,7 @@ func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
 }
 
 // Post registers a route to match the given path argument for
-// HTTP POST requests.  When a route is encounted that matches
+// HTTP POST requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
@@ -102,7 +102,7 @@ func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
 }
 
 // Delete registers a route to match the given path argument for
-// HTTP DELETE requests.  When a route is encounted that matches
+// HTTP DELETE requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
@@ -112,7 +112,7 @@ func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
 }
 
 // Match registers a route to match the given path argument for
-// any supported HTTP requests.  When a route is encounted that
+// any supported HTTP requests. When a route is encounted that
 // matches the path, the handler function argument is used to serve
 // the requests.
 func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
@@ -159,11 +159,11 @@ func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Ha
 }
 
 // ServeHTTP handles all incoming HTTP requests. The request is first
-// passed to each of the registered middleware functions.  If the middleware
+// passed to each of the registered middleware functions. If the middleware
 // function returns a boolean value of `true`, ServeHTTP returns early,
-// assuming that the response has been served by it.  If a middleware
+// assuming that the response has been served by it. If a middleware
 // function fails to serve the request, ServeHTTP attempts to search
-// for a Route that matches the requests URL.  If a route is found,
+// for a Route that matches the requests URL. If a route is found,
 // the request and response writer are handed over to the matched handler.
 // If no middleware or route is found to handle the request, the Router's
 // not found handler is used.

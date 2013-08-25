@@ -2,6 +2,8 @@
 
 Router dispatcher for Go web applications.
 
+[![Build Status](https://drone.io/github.com/chuckpreslar/dispatcher/status.png)](https://drone.io/github.com/chuckpreslar/dispatcher/latest)
+
 ## Installation
 
 With Google's [Go](http://www.golang.org) installed on your machine:

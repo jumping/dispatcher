@@ -1,5 +1,5 @@
-// Package dispatcher provides a route dispatch for
-// serving HTTP requests.
+// Package dispatcher provides a route dispatcher/HTTP request multiplexer
+// for serving HTTP requests.
 package dispatcher
 
 import (
@@ -34,7 +34,7 @@ const (
 // httpMethods is an array of strings containing the supported
 // HTTP methods.
 var (
-  httpMethods = []string{GET, PUT, POST, DELETE, OPTIONS, HEAD, TRACE, CONNECT, PATCH} // HTTP methods supported.
+  httpMethods = []string{GET, PUT, POST, DELETE, OPTIONS, HEAD, TRACE, CONNECT, PATCH}
 )
 
 // The Dispatcher type is an adapter to shorten creation
@@ -165,7 +165,7 @@ func (r *Router) Patch(path string, handler http.HandlerFunc) *Router {
 }
 
 // Match registers a route to match the given path argument for
-// any supported HTTP requests. When a route is encounted that
+// any supported HTTP method. When a route is encounted that
 // matches the path, the handler function argument is used to serve
 // the requests.
 func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
@@ -177,10 +177,11 @@ func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
 }
 
 // AddHandler creates a new Route matching path `path` under the
-// Router's dispatchers `method`, setting its handler to handler
-// to `handler`. If the Router's dispatcher map does not previously
-// have a key for `method`, the method assumes the method is unsupported
-// and the Route created nor its handler will be added.
+// Router's dispatchers `method`, setting its handler to `handler`.
+// If the Router's dispatcher map does not previously have a key
+// for `method`, the AddHandler assumes the `method` is unsupported
+// and the Route created nor its handler will be added to the
+// dispatcher.
 func (r *Router) AddHandler(method, path string, handler http.HandlerFunc) *Router {
   if routes, ok := r.dispatcher[method]; ok {
     route := NewRoute(path, r.strict)
@@ -227,11 +228,11 @@ func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Ha
 // passed to each of the registered middleware functions. If the middleware
 // function returns a boolean value of `true`, ServeHTTP returns early,
 // assuming that the response has been served by it. If a middleware
-// function fails to serve the request, ServeHTTP attempts to search
-// for a Route that matches the requests URL. If a route is found,
-// the request and response writer are handed over to the matched handler.
-// If no middleware or route is found to handle the request, the Router's
-// not found handler is used.
+// function fails to serve the request by returning `false`, ServeHTTP
+// attempts to search for a Route that matches the requests URL. If a
+// route is found, the request and response writer are handed over to
+// the matched handler. If no middleware or route is found to handle
+// the request, the Router's not found handler is used.
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
   for _, middleware := range r.middleware {
     if middleware.ServeHTTP(res, req) {

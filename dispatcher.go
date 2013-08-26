@@ -185,8 +185,8 @@ func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Ha
 // not found handler is used.
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
   for _, middleware := range r.middleware {
-    if middleware(res, req) {
-      // Midleware returned true, meaning it handled the response, return
+    if middleware.ServeHTTP(res, req) {
+      // Midleware returned true meaning it handled the response, return
       // early.
       return
     }

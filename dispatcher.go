@@ -20,16 +20,21 @@ var (
 
 // Constants representing supported HTTP methods.
 const (
-  GET    = "GET"
-  PUT    = "PUT"
-  POST   = "POST"
-  DELETE = "DELETE"
+  GET     = "GET"
+  PUT     = "PUT"
+  POST    = "POST"
+  DELETE  = "DELETE"
+  OPTIONS = "OPTIONS"
+  HEAD    = "HEAD"
+  TRACE   = "TRACE"
+  CONNECT = "CONNECT"
+  PATCH   = "PATCH"
 )
 
 // httpMethods is an array of strings containing the supported
 // HTTP methods.
 var (
-  httpMethods = []string{GET, PUT, POST, DELETE} // HTTP methods supported.
+  httpMethods = []string{GET, PUT, POST, DELETE, OPTIONS, HEAD, TRACE, CONNECT, PATCH} // HTTP methods supported.
 )
 
 // The Dispatcher type is an adapter to shorten creation
@@ -92,9 +97,7 @@ func (r *Router) UnrestrictRouteMatching() *Router {
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
-  route := NewRoute(path, r.strict)
-  r.dispatcher[GET][route] = handler
-  return r
+  return r.AddHandler(GET, path, handler)
 }
 
 // Put registers a route to match the given path argument for
@@ -102,9 +105,7 @@ func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
-  route := NewRoute(path, r.strict)
-  r.dispatcher[PUT][route] = handler
-  return r
+  return r.AddHandler(PUT, path, handler)
 }
 
 // Post registers a route to match the given path argument for
@@ -112,9 +113,7 @@ func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
-  route := NewRoute(path, r.strict)
-  r.dispatcher[POST][route] = handler
-  return r
+  return r.AddHandler(POST, path, handler)
 }
 
 // Delete registers a route to match the given path argument for
@@ -122,9 +121,47 @@ func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
 // the path, the handler function argument is used to serve the
 // requests.
 func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
-  route := NewRoute(path, r.strict)
-  r.dispatcher[DELETE][route] = handler
-  return r
+  return r.AddHandler(DELETE, path, handler)
+}
+
+// Options registers a route to match the given path argument for
+// HTTP OPTIONS requests. When a route is encounted that matches
+// the path, the handler function argument is used to serve the
+// requests.
+func (r *Router) Options(path string, handler http.HandlerFunc) *Router {
+  return r.AddHandler(OPTIONS, path, handler)
+}
+
+// Head registers a route to match the given path argument for
+// HTTP HEAD requests. When a route is encounted that matches
+// the path, the handler function argument is used to serve the
+// requests.
+func (r *Router) Head(path string, handler http.HandlerFunc) *Router {
+  return r.AddHandler(HEAD, path, handler)
+}
+
+// Trace registers a route to match the given path argument for
+// HTTP TRACE requests. When a route is encounted that matches
+// the path, the handler function argument is used to serve the
+// requests.
+func (r *Router) Trace(path string, handler http.HandlerFunc) *Router {
+  return r.AddHandler(TRACE, path, handler)
+}
+
+// Connect registers a route to match the given path argument for
+// HTTP CONNECT requests. When a route is encounted that matches
+// the path, the handler function argument is used to serve the
+// requests.
+func (r *Router) Connect(path string, handler http.HandlerFunc) *Router {
+  return r.AddHandler(CONNECT, path, handler)
+}
+
+// Patch registers a route to match the given path argument for
+// HTTP PATCH requests. When a route is encounted that matches
+// the path, the handler function argument is used to serve the
+// requests.
+func (r *Router) Patch(path string, handler http.HandlerFunc) *Router {
+  return r.AddHandler(PATCH, path, handler)
 }
 
 // Match registers a route to match the given path argument for
@@ -132,10 +169,22 @@ func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
 // matches the path, the handler function argument is used to serve
 // the requests.
 func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
-  route := NewRoute(path, r.strict)
-
   for _, method := range httpMethods {
-    r.dispatcher[method][route] = handler
+    r.AddHandler(method, path, handler)
+  }
+
+  return r
+}
+
+// AddHandler creates a new Route matching path `path` under the
+// Router's dispatchers `method`, setting its handler to handler
+// to `handler`. If the Router's dispatcher map does not previously
+// have a key for `method`, the method assumes the method is unsupported
+// and the Route created nor its handler will be added.
+func (r *Router) AddHandler(method, path string, handler http.HandlerFunc) *Router {
+  if routes, ok := r.dispatcher[method]; ok {
+    route := NewRoute(path, r.strict)
+    routes[route] = handler
   }
 
   return r

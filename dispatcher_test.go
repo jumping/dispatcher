@@ -51,6 +51,16 @@ func TestRoutedGetRequest(t *testing.T) {
     Put(path, generateCountableHandler(&counter)).
     Post(path, generateCountableHandler(&counter)).
     Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
     ServeHTTP(nil, generateHttpRequest(GET, "/path/to/use"))
 
   if 1 != counter {
@@ -69,6 +79,11 @@ func TestRoutedPutRequest(t *testing.T) {
     Put(path, generateCountableHandler(&counter)).
     Post(path, generateCountableHandler(&counter)).
     Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
     ServeHTTP(nil, generateHttpRequest(PUT, "/path/to/use"))
 
   if 1 != counter {
@@ -87,6 +102,11 @@ func TestRoutedPostRequest(t *testing.T) {
     Put(path, generateCountableHandler(&counter)).
     Post(path, generateCountableHandler(&counter)).
     Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
     ServeHTTP(nil, generateHttpRequest(POST, "/path/to/use"))
 
   if 1 != counter {
@@ -105,7 +125,127 @@ func TestRoutedDeleteRequest(t *testing.T) {
     Put(path, generateCountableHandler(&counter)).
     Post(path, generateCountableHandler(&counter)).
     Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
     ServeHTTP(nil, generateHttpRequest(DELETE, "/path/to/use"))
+
+  if 1 != counter {
+    t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
+  }
+}
+
+// TestRoutedOptionsRequest ensures only the function registered via
+// the Routers Options method respond to HTTP OPTIONS requests.
+func TestRoutedOptionsRequest(t *testing.T) {
+  counter := 0
+  path := "/path/:to/:use"
+
+  NewRouter().
+    Get(path, generateCountableHandler(&counter)).
+    Put(path, generateCountableHandler(&counter)).
+    Post(path, generateCountableHandler(&counter)).
+    Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    ServeHTTP(nil, generateHttpRequest(OPTIONS, "/path/to/use"))
+
+  if 1 != counter {
+    t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
+  }
+}
+
+// TestRoutedHeadRequest ensures only the function registered via
+// the Routers Head method respond to HTTP HEAD requests.
+func TestRoutedHeadRequest(t *testing.T) {
+  counter := 0
+  path := "/path/:to/:use"
+
+  NewRouter().
+    Get(path, generateCountableHandler(&counter)).
+    Put(path, generateCountableHandler(&counter)).
+    Post(path, generateCountableHandler(&counter)).
+    Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    ServeHTTP(nil, generateHttpRequest(HEAD, "/path/to/use"))
+
+  if 1 != counter {
+    t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
+  }
+}
+
+// TestRoutedTraceRequest ensures only the function registered via
+// the Routers Trace method respond to HTTP TRACE requests.
+func TestRoutedTraceRequest(t *testing.T) {
+  counter := 0
+  path := "/path/:to/:use"
+
+  NewRouter().
+    Get(path, generateCountableHandler(&counter)).
+    Put(path, generateCountableHandler(&counter)).
+    Post(path, generateCountableHandler(&counter)).
+    Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    ServeHTTP(nil, generateHttpRequest(TRACE, "/path/to/use"))
+
+  if 1 != counter {
+    t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
+  }
+}
+
+// TestRoutedConnectRequest ensures only the function registered via
+// the Routers Connect method respond to HTTP CONNECT requests.
+func TestRoutedConnectRequest(t *testing.T) {
+  counter := 0
+  path := "/path/:to/:use"
+
+  NewRouter().
+    Get(path, generateCountableHandler(&counter)).
+    Put(path, generateCountableHandler(&counter)).
+    Post(path, generateCountableHandler(&counter)).
+    Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    ServeHTTP(nil, generateHttpRequest(CONNECT, "/path/to/use"))
+
+  if 1 != counter {
+    t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
+  }
+}
+
+// TestRoutedPatchRequest ensures only the function registered via
+// the Routers Patch method respond to HTTP PATCH requests.
+func TestRoutedPatchRequest(t *testing.T) {
+  counter := 0
+  path := "/path/:to/:use"
+
+  NewRouter().
+    Get(path, generateCountableHandler(&counter)).
+    Put(path, generateCountableHandler(&counter)).
+    Post(path, generateCountableHandler(&counter)).
+    Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
+    ServeHTTP(nil, generateHttpRequest(PATCH, "/path/to/use"))
 
   if 1 != counter {
     t.Errorf("Expected counter to be set to 1, was set to %d.", counter)
@@ -176,6 +316,11 @@ func TestNotFoundRoute(t *testing.T) {
     Put(path, generateCountableHandler(&counter)).
     Post(path, generateCountableHandler(&counter)).
     Delete(path, generateCountableHandler(&counter)).
+    Options(path, generateCountableHandler(&counter)).
+    Head(path, generateCountableHandler(&counter)).
+    Trace(path, generateCountableHandler(&counter)).
+    Connect(path, generateCountableHandler(&counter)).
+    Patch(path, generateCountableHandler(&counter)).
     NotFound(generateCountableHandler(&counter)).
     ServeHTTP(nil, generateHttpRequest(GET, "/test/unkown/route"))
 

@@ -79,9 +79,9 @@ func main() {
 
 ## Documentation
 
-View godoc or visit [godoc.org](http://godoc.org/github.com/chuckpreslar/codex).
+View godoc or visit [godoc.org](http://godoc.org/github.com/chuckpreslar/dispatcher).
 
-    $ godoc codex
+    $ godoc dispatcher
 
 ## License
 

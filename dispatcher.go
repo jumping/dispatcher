@@ -234,6 +234,15 @@ func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Ha
 // the matched handler. If no middleware or route is found to handle
 // the request, the Router's not found handler is used.
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+  route, handler := r.findMatchingRouteAndHandler(req)
+
+  if nil == route || nil == handler {
+    // No appropriate route and handler combination was found, allow
+    // the notFoundHandler to serve the HTTP Request.
+    r.notFoundHandler.ServeHTTP(res, req)
+    return
+  }
+
   for _, middleware := range r.middleware {
     if middleware.ServeHTTP(res, req) {
       // Midleware returned true meaning it handled the response, return
@@ -242,16 +251,9 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
     }
   }
 
-  if route, handler := r.findMatchingRouteAndHandler(req); nil != route && nil != handler {
-    // Found an appropriate route and handler, pass along the req and
-    // response and continue.
-    handler.ServeHTTP(res, req)
-    return
-  }
-
-  // If this point is reached, the requst was not handled by registered middleware
-  // and an appropriate route and handler could not be found.
-  r.notFoundHandler.ServeHTTP(res, req)
+  // Middleware did not serve the request, pass it to the
+  // handler.
+  handler.ServeHTTP(res, req)
 }
 
 // NewDispatcher creates a new Dispatcher map, creating

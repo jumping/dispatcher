@@ -12,70 +12,107 @@ With Google's [Go](http://www.golang.org) installed on your machine:
 
 ## Usage
 
-Getting started with Dispatcher is simple.  The following is an example of how to use the package.
+### Introduction
+
+To get started using dispatcher, simply:
 
 ```go
 package main
 
-// Standard library imports.
 import(
-  "net/http"
+    "net/http"
 )
 
-// Package imports.
 import(
-  "github.com/chuckpreslar/dispatcher"
+    "github.com/chuckpreslar/dispatcher"
 )
 
-func Index(w http.ResponseWriter, r *http.Request) {
-  // Index route handler.
+func SomePathHandler(w http.ResponseWriter, r *http.Request) {
+    // Handle the request.
 }
-
-func ViewPosts(w http.ResponseWriter, r *http.Request) {
-  // ViewPosts route handler.  
-}
-
-func CreatePost(w http.ResponseWriter, r *http.Request) {
-  // CreatePosts route handler.  
-}
-
-func
 
 func main() {
-  // Create an new Router instance from the dispatcher package.
-  router := dispatcher.NewRouter()
-  
-  router.
-    // Your servers index route.
-    Get("/", Index).
-    // The `:id` route parameter is made optional, will respond to `/posts` and `/posts/1`.
-    Get("/posts/:id?", ViewPosts). 
-    // Responds to HTTP PUT requests that match the `/posts` path.
-    Put("/post", CreatePost)
-  
-  // Start your server.
-  http.ListenAndServe(":3000", router)
+    // Initialize a new Router instance.
+    router := dispatcher.NewRouter()
+    
+    // Register a HandlerFunc.
+    router.Match("/some/path", SomePathHandler)
+    
+    // Start your server.
+    http.ListenAndServe(":3000" /* Port to listen on */, router)
 }
-
 ```
 
+The Router's Match method will match a request based only on the HTTP Request's URL Path, ignoring the method.
+
+### Routing based on HTTP Method
+
+Dispatcher supports route dispatching for most* supported HTTP methods.  To have a handler respond to a specific HTTP method, simply call the corresponding receiver method on the Router you've created passing it the path to match and the handler to use when a request with a matching path is encountered.
+```go
+//...
+
+func main() {
+    router := dispatcher.NewRouter()
+    
+    router.
+        Get("/get/something", GetSomethingHandler).
+        Put("/put/something", PutSomethingHandler).
+        Post("/post/something", PostSomethingHandler).
+        Delete("/delete/something", DeleteSomethingHandler)
+        
+    http.ListenAndServe(":3000" /* Port to listen on */, router)
+}
+```
+
+### Path Matching
+
+__Match Explicit Path__
+
+```go
+    // Matches route `/posts`
+    router.Match("/posts", PostsHandler)
+```
+
+__Match Path with Required Parameters__
+
+```go
+    // Matches route `/posts/2012`, `/posts/2013`, etc.
+    router.Match("/posts/:year", IndividualPostsHandler)
+```
+
+__Match Path with Optional Parameters__
+
+```go
+    // Matches route `/posts/2013` and `/posts/2013/january`
+    router.Match("/posts/:id/:option?", IndividualPostsHandler)
+```
+
+__Match Wildcard__
+
+```go    
+    // Matches any route starting with `/posts` (i.e. `/posts/`, `/posts/2013`, `/posts/2013/january`)
+    router.Match("/posts/*", WildcardPostsHandler)
+```
+
+### Accessing Path Parameters
+    
 ### Middleware
 
-It is possible to provide middleware for your router to use with each HTTP request.  It is the responsibility of the middleware to let the Router know if it has handled the request or not by returning `true` or `false` respectively.  Middleware handlers are called regardless of the requests HTTP method.
+Route middleware is registered as follows:
 
-``` go
-func SampleMiddlewareHandler(w http.ResponseWriter, r *http.Request) bool {
-  // Do something.
-  return false
-}
-
-func main() {
-  // ...
-  router.RegisterMiddleware(SampleMiddlewareHandler)
-  http.ListenAndServe(":3000", router)
-}
+```go
+    //...
+    router.RegisterMiddleware(func(res http.ResponseWriter, req *http.Request) bool {
+        // Middleware handler.
+        return true || false
+    })
 ```
 
+Dispatcher attempts to call each piece of registered middleware with every request.  If the middleware handler returns true, Dispatcher assumes that the request was handled by the middleware and it no longer needs to attempt to find a registered Route and handler for the request.  If the middleware returns false, the next registered middleware handler runs or an attempt to find a registered Route and handler is made.
+
+__TODO:__
+* Finalize public asset serving middleware.
+* Finalize session support middleware.
 
 ## Documentation
 

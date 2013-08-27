@@ -111,6 +111,7 @@ Route middleware is registered as follows:
 Dispatcher attempts to call each piece of registered middleware with every request.  If the middleware handler returns true, Dispatcher assumes that the request was handled by the middleware and it no longer needs to attempt to find a registered Route and handler for the request.  If the middleware returns false, the next registered middleware handler runs or an attempt to find a registered Route and handler is made.
 
 __TODO:__
+* Finalize route parameter retrieval.
 * Finalize public asset serving middleware.
 * Finalize session support middleware.
 

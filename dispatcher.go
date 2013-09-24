@@ -40,7 +40,7 @@ var (
 // The Dispatcher type is an adapter to shorten creation
 // of a map of strings to a map of pointers to Routes to
 // HandlerFunc types from the http package.
-type Dispatcher map[string]map[*Route]http.HandlerFunc
+type Dispatcher map[string]map[*Route]http.Handler
 
 // The Middleware type is an adapter to allow the use of
 // ordinary functions as middleware handlers.
@@ -96,7 +96,7 @@ func (r *Router) UnrestrictRouteMatching() *Router {
 // HTTP GET requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Get(path string, handler http.Handler) *Router {
   return r.AddHandler(GET, path, handler)
 }
 
@@ -104,7 +104,7 @@ func (r *Router) Get(path string, handler http.HandlerFunc) *Router {
 // HTTP PUT requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Put(path string, handler http.Handler) *Router {
   return r.AddHandler(PUT, path, handler)
 }
 
@@ -112,7 +112,7 @@ func (r *Router) Put(path string, handler http.HandlerFunc) *Router {
 // HTTP POST requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Post(path string, handler http.Handler) *Router {
   return r.AddHandler(POST, path, handler)
 }
 
@@ -120,7 +120,7 @@ func (r *Router) Post(path string, handler http.HandlerFunc) *Router {
 // HTTP DELETE requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Delete(path string, handler http.Handler) *Router {
   return r.AddHandler(DELETE, path, handler)
 }
 
@@ -128,7 +128,7 @@ func (r *Router) Delete(path string, handler http.HandlerFunc) *Router {
 // HTTP OPTIONS requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Options(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Options(path string, handler http.Handler) *Router {
   return r.AddHandler(OPTIONS, path, handler)
 }
 
@@ -136,7 +136,7 @@ func (r *Router) Options(path string, handler http.HandlerFunc) *Router {
 // HTTP HEAD requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Head(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Head(path string, handler http.Handler) *Router {
   return r.AddHandler(HEAD, path, handler)
 }
 
@@ -144,7 +144,7 @@ func (r *Router) Head(path string, handler http.HandlerFunc) *Router {
 // HTTP TRACE requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Trace(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Trace(path string, handler http.Handler) *Router {
   return r.AddHandler(TRACE, path, handler)
 }
 
@@ -152,7 +152,7 @@ func (r *Router) Trace(path string, handler http.HandlerFunc) *Router {
 // HTTP CONNECT requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Connect(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Connect(path string, handler http.Handler) *Router {
   return r.AddHandler(CONNECT, path, handler)
 }
 
@@ -160,7 +160,7 @@ func (r *Router) Connect(path string, handler http.HandlerFunc) *Router {
 // HTTP PATCH requests. When a route is encounted that matches
 // the path, the handler function argument is used to serve the
 // requests.
-func (r *Router) Patch(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Patch(path string, handler http.Handler) *Router {
   return r.AddHandler(PATCH, path, handler)
 }
 
@@ -168,7 +168,7 @@ func (r *Router) Patch(path string, handler http.HandlerFunc) *Router {
 // any supported HTTP method. When a route is encounted that
 // matches the path, the handler function argument is used to serve
 // the requests.
-func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
+func (r *Router) Match(path string, handler http.Handler) *Router {
   for _, method := range httpMethods {
     r.AddHandler(method, path, handler)
   }
@@ -182,7 +182,7 @@ func (r *Router) Match(path string, handler http.HandlerFunc) *Router {
 // for `method`, the AddHandler assumes the `method` is unsupported
 // and the Route created nor its handler will be added to the
 // dispatcher.
-func (r *Router) AddHandler(method, path string, handler http.HandlerFunc) *Router {
+func (r *Router) AddHandler(method, path string, handler http.Handler) *Router {
   if routes, ok := r.dispatcher[method]; ok {
     route := NewRoute(path, r.strict)
     routes[route] = handler
@@ -201,7 +201,7 @@ func (r *Router) RegisterMiddleware(middleware Middleware) *Router {
 // NotFound sets the routers handler that will be called when
 // middleware does not handle the request's response and the
 // path fails to match a known route.
-func (r *Router) NotFound(handler http.HandlerFunc) *Router {
+func (r *Router) NotFound(handler http.Handler) *Router {
   r.notFoundHandler = handler
   return r
 }
@@ -209,7 +209,7 @@ func (r *Router) NotFound(handler http.HandlerFunc) *Router {
 // findMatchingRouteAndHandler looks into the Router's dispatcher
 // object in an attempt to find a matching route and handler function.
 // If a pair are found, they are returned, else both will be nil.
-func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.HandlerFunc) {
+func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Handler) {
   method := strings.ToUpper(req.Method)
 
   if routes, ok := r.dispatcher[method]; ok {
@@ -234,6 +234,14 @@ func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Ha
 // the matched handler. If no middleware or route is found to handle
 // the request, the Router's not found handler is used.
 func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
+  for _, middleware := range r.middleware {
+    if middleware.ServeHTTP(res, req) {
+      // Midleware returned true meaning it handled the response, return
+      // early.
+      return
+    }
+  }
+
   route, handler := r.findMatchingRouteAndHandler(req)
 
   if nil == route || nil == handler {
@@ -241,14 +249,6 @@ func (r *Router) ServeHTTP(res http.ResponseWriter, req *http.Request) {
     // the notFoundHandler to serve the HTTP Request.
     r.notFoundHandler.ServeHTTP(res, req)
     return
-  }
-
-  for _, middleware := range r.middleware {
-    if middleware.ServeHTTP(res, req) {
-      // Midleware returned true meaning it handled the response, return
-      // early.
-      return
-    }
   }
 
   // Middleware did not serve the request, pass it to the
@@ -262,7 +262,7 @@ func NewDispatcher() (dispatcher Dispatcher) {
   dispatcher = make(Dispatcher)
 
   for _, method := range httpMethods {
-    dispatcher[method] = make(map[*Route]http.HandlerFunc)
+    dispatcher[method] = make(map[*Route]http.Handler)
   }
 
   return

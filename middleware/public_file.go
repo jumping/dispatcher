@@ -15,6 +15,10 @@ import (
   "github.com/chuckpreslar/dispatcher"
 )
 
+const (
+  PlainText = "text/plain"
+)
+
 // ServePublicFilesFrom accepts a `directory` argument where public
 // files (i.e. javascript, css, and image files) can be found
 // and returns a function to serve files stored in that `directory`.
@@ -25,7 +29,7 @@ import (
 // to serve the request. If no file is found, the function returns false
 // to allow other middleware or a potential dispatcher Route handler
 // to serve the request.
-func ServePublicFilesFrom(directory string) dispatcher.Middleware {
+func ServePublicFilesFrom(directory string) dispatcher.MiddlewareHandler {
 
   return func(res http.ResponseWriter, req *http.Request) bool {
     location := path.Join(directory, req.URL.Path)
@@ -45,6 +49,12 @@ func ServePublicFilesFrom(directory string) dispatcher.Middleware {
 
     // Determing the MIME type of the file located at `location`.
     typ := mime.TypeByExtension(path.Ext(location))
+
+    // If `mime` package fails to determine type by file extention
+    // set to PlainText constant.
+    if "" == typ {
+      typ = PlainText
+    }
 
     // Write the Content-Type header of the public file.
     header := res.Header()

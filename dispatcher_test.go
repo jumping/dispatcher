@@ -351,7 +351,7 @@ func generateCountableHandler(n *int) http.HandlerFunc {
 
 // generateCountableMiddleware is a helper function to generate a
 // Middleware from the dispatcher package to use with testing.
-func generateCountableMiddleware(n *int, handle bool) Middleware {
+func generateCountableMiddleware(n *int, handle bool) MiddlewareHandler {
   return func(res http.ResponseWriter, req *http.Request) bool {
     *n += 1
     return handle

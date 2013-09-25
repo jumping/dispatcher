@@ -44,11 +44,15 @@ type Dispatcher map[string]map[*Route]http.Handler
 
 // The Middleware type is an adapter to allow the use of
 // ordinary functions as middleware handlers.
-type Middleware func(res http.ResponseWriter, req *http.Request) bool
+type MiddlewareHandler func(res http.ResponseWriter, req *http.Request) bool
 
 // ServeHTTP calls m(res, req)
-func (m Middleware) ServeHTTP(res http.ResponseWriter, req *http.Request) bool {
+func (m MiddlewareHandler) ServeHTTP(res http.ResponseWriter, req *http.Request) bool {
   return m(res, req)
+}
+
+type Middleware interface {
+  ServeHTTP(res http.ResponseWriter, req *http.Request) bool
 }
 
 type Router struct {

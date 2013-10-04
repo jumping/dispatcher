@@ -3,20 +3,20 @@
 package middleware
 
 import (
-  "fmt"
-  "io/ioutil"
-  "mime"
-  "net/http"
-  "os"
-  "path"
+	"fmt"
+	"io/ioutil"
+	"mime"
+	"net/http"
+	"os"
+	"path"
 )
 
 import (
-  "github.com/chuckpreslar/dispatcher"
+	"github.com/chuckpreslar/dispatcher"
 )
 
 const (
-  PlainText = "text/plain"
+	PlainText = "text/plain"
 )
 
 // ServePublicFilesFrom accepts a `directory` argument where public
@@ -31,39 +31,39 @@ const (
 // to serve the request.
 func ServePublicFilesFrom(directory string) dispatcher.MiddlewareHandler {
 
-  return func(res http.ResponseWriter, req *http.Request) bool {
-    location := path.Join(directory, req.URL.Path)
-    file, err := os.Open(location)
+	return func(res http.ResponseWriter, req *http.Request) bool {
+		location := path.Join(directory, req.URL.Path)
+		file, err := os.Open(location)
 
-    if nil != err {
-      return false
-    } else if stat, err := file.Stat(); nil != err || stat.IsDir() {
-      return false
-    }
+		if nil != err {
+			return false
+		} else if stat, err := file.Stat(); nil != err || stat.IsDir() {
+			return false
+		}
 
-    data, err := ioutil.ReadFile(location)
+		data, err := ioutil.ReadFile(location)
 
-    if nil != err {
-      return false
-    }
+		if nil != err {
+			return false
+		}
 
-    // Determing the MIME type of the file located at `location`.
-    typ := mime.TypeByExtension(path.Ext(location))
+		// Determing the MIME type of the file located at `location`.
+		typ := mime.TypeByExtension(path.Ext(location))
 
-    // If `mime` package fails to determine type by file extention
-    // set to PlainText constant.
-    if "" == typ {
-      typ = PlainText
-    }
+		// If `mime` package fails to determine type by file extention
+		// set to PlainText constant.
+		if "" == typ {
+			typ = PlainText
+		}
 
-    // Write the Content-Type header of the public file.
-    header := res.Header()
-    header.Add("Content-Type", typ)
+		// Write the Content-Type header of the public file.
+		header := res.Header()
+		header.Add("Content-Type", typ)
 
-    if _, err := fmt.Fprintf(res, "%s", data); nil != err {
-      return false
-    }
+		if _, err := fmt.Fprintf(res, "%s", data); nil != err {
+			return false
+		}
 
-    return true
-  }
+		return true
+	}
 }

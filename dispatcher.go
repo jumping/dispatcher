@@ -57,8 +57,7 @@ type Middleware interface {
 }
 
 type Router struct {
-	mutex *sync.Mutex
-
+	*sync.Mutex
 	// Dispatcher map used for looking up the Router's Routes.
 	dispatcher Dispatcher
 	// Middleware each request served by the router should pass through.
@@ -194,8 +193,8 @@ func (r *Router) Match(path string, handler http.Handler) *Router {
 // and the Route created nor its handler will be added to the
 // dispatcher.
 func (r *Router) AddHandler(method, path string, handler http.Handler) *Router {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	r.Lock()
+	defer r.Unlock()
 
 	if routes, ok := r.dispatcher[method]; ok {
 		route := NewRoute(path, r.strict)
@@ -208,8 +207,8 @@ func (r *Router) AddHandler(method, path string, handler http.Handler) *Router {
 // RegisterMiddleware registers routing handlers that will be called
 // with each HTTP request served.
 func (r *Router) RegisterMiddleware(middleware Middleware) *Router {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	r.Lock()
+	defer r.Unlock()
 
 	r.middleware = append(r.middleware, middleware)
 	return r
@@ -219,8 +218,8 @@ func (r *Router) RegisterMiddleware(middleware Middleware) *Router {
 // middleware does not handle the request's response and the
 // path fails to match a known route.
 func (r *Router) NotFound(handler http.Handler) *Router {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	r.Lock()
+	defer r.Unlock()
 
 	r.notFoundHandler = handler
 	return r
@@ -230,8 +229,8 @@ func (r *Router) NotFound(handler http.Handler) *Router {
 // object in an attempt to find a matching route and handler function.
 // If a pair are found, they are returned, else both will be nil.
 func (r *Router) findMatchingRouteAndHandler(req *http.Request) (*Route, http.Handler) {
-	r.mutex.Lock()
-	defer r.mutex.Unlock()
+	r.Lock()
+	defer r.Unlock()
 
 	method := strings.ToUpper(req.Method)
 
@@ -299,7 +298,7 @@ func NewRouter() (r *Router) {
 	r = new(Router)
 	r.dispatcher = NewDispatcher()
 	r.notFoundHandler = http.NotFoundHandler()
-	r.mutex = &sync.Mutex{}
+	r.Mutex = &sync.Mutex{}
 	return
 }
 

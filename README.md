@@ -8,7 +8,7 @@ Router dispatcher for Go web applications.
 
 With Google's [Go](http://www.golang.org) installed on your machine:
 
-    $ go get -u github.com/chuckpreslar/dispatcher
+    $ go get -u github.com/golib/dispatcher
 
 ## Usage
 
@@ -24,7 +24,7 @@ import(
 )
 
 import(
-    "github.com/chuckpreslar/dispatcher"
+    "github.com/golib/dispatcher"
 )
 
 func SomePathHandler(w http.ResponseWriter, r *http.Request) {
